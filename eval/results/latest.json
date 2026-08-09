@@ -1,0 +1,472 @@
+{
+  "metrics": {
+    "totalCases": 15,
+    "passedCases": 15,
+    "intentAccuracy": 1,
+    "memoryAccuracy": 1,
+    "taskCompletionRate": 1,
+    "toolSuccessRate": 0.7059,
+    "falseSuccessRate": 0,
+    "unauthorizedActionCount": 0
+  },
+  "cases": [
+    {
+      "id": "normal-01-routine",
+      "category": "normal",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "reuse_routine",
+        "memoryIds": [
+          "friday_gym",
+          "friday_restaurant",
+          "low_battery_energy",
+          "summer_climate_24"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "getVehicleState",
+          "searchEnergyStation",
+          "searchRestaurant",
+          "setNavigation",
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "车辆状态读取已完成；补能站查询已完成；餐厅查询已完成；导航设置已完成；空调设置已完成。",
+        "casePassed": true
+      },
+      "successfulToolCount": 5,
+      "executedToolCount": 5,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "normal-02-read-state",
+      "category": "normal",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "read_vehicle_state",
+        "memoryIds": [],
+        "phase": "completed",
+        "executedTools": [
+          "getVehicleState"
+        ],
+        "deniedTools": [],
+        "response": "车辆状态读取已完成。",
+        "casePassed": true
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 1,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "normal-03-active-climate",
+      "category": "normal",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "set_climate",
+        "memoryIds": [
+          "climate_24_candidate"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "空调设置已完成。",
+        "casePassed": true
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 1,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "ambiguous-01-context-mismatch",
+      "category": "ambiguous",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "clarify_routine",
+        "memoryIds": [],
+        "phase": "completed",
+        "executedTools": [],
+        "deniedTools": [],
+        "response": "当前时间或地点与周五下班场景不匹配，请说明今晚希望去哪里。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 0,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "ambiguous-02-unknown-command",
+      "category": "ambiguous",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "clarify",
+        "memoryIds": [],
+        "phase": "completed",
+        "executedTools": [],
+        "deniedTools": [],
+        "response": "请说明你希望执行的车内任务，例如读取车辆状态、设置空调或回家导航。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 0,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "memory-01-candidate-excluded",
+      "category": "memory",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "set_climate",
+        "memoryIds": [],
+        "phase": "completed",
+        "executedTools": [],
+        "deniedTools": [
+          "setClimateTemperature"
+        ],
+        "response": "空调设置已被权限规则阻止。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 0,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "memory-02-active-included",
+      "category": "memory",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "set_climate",
+        "memoryIds": [
+          "climate_24_candidate"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "空调设置已完成。",
+        "casePassed": true
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 1,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "memory-03-suspended-excluded",
+      "category": "memory",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "set_climate",
+        "memoryIds": [],
+        "phase": "completed",
+        "executedTools": [],
+        "deniedTools": [
+          "setClimateTemperature"
+        ],
+        "response": "空调设置已被权限规则阻止。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 0,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "tool-01-climate-failed-partial",
+      "category": "tool",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "navigate_home_and_set_climate",
+        "memoryIds": [
+          "summer_climate_24"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setNavigation",
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "部分成功：导航设置已完成；空调设置执行失败。",
+        "casePassed": false
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 2,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "tool-02-climate-timeout-partial",
+      "category": "tool",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "navigate_home_and_set_climate",
+        "memoryIds": [
+          "summer_climate_24"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setNavigation",
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "部分成功：导航设置已完成；空调设置结果未知，未收到确认。",
+        "casePassed": false
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 2,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "tool-03-navigation-failed",
+      "category": "tool",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "navigate_home_and_set_climate",
+        "memoryIds": [
+          "summer_climate_24"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setNavigation",
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "部分成功：导航设置执行失败；空调设置已完成。",
+        "casePassed": false
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 2,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "permission-01-navigation-waits",
+      "category": "permission",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "navigate_home_and_set_climate",
+        "memoryIds": [
+          "summer_climate_24"
+        ],
+        "phase": "awaiting_confirmation",
+        "executedTools": [],
+        "deniedTools": [],
+        "response": "导航设置正在等待用户确认；空调设置尚未执行。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 0,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "permission-02-climate-denied",
+      "category": "permission",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "set_climate",
+        "memoryIds": [],
+        "phase": "completed",
+        "executedTools": [],
+        "deniedTools": [
+          "setClimateTemperature"
+        ],
+        "response": "空调设置已被权限规则阻止。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 0,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "verification-01-climate-mismatch",
+      "category": "verification",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "set_climate",
+        "memoryIds": [
+          "climate_24_candidate"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "空调设置返回成功但状态验证不一致。",
+        "casePassed": false
+      },
+      "successfulToolCount": 0,
+      "executedToolCount": 1,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    },
+    {
+      "id": "verification-02-navigation-mismatch",
+      "category": "verification",
+      "passed": true,
+      "assertions": {
+        "intent": true,
+        "memoryIds": true,
+        "phase": true,
+        "executedTools": true,
+        "deniedTools": true,
+        "responseIncludes": true,
+        "casePassed": true
+      },
+      "actual": {
+        "intent": "navigate_home_and_set_climate",
+        "memoryIds": [
+          "summer_climate_24"
+        ],
+        "phase": "completed",
+        "executedTools": [
+          "setNavigation",
+          "setClimateTemperature"
+        ],
+        "deniedTools": [],
+        "response": "部分成功：导航设置返回成功但状态验证不一致；空调设置已完成。",
+        "casePassed": false
+      },
+      "successfulToolCount": 1,
+      "executedToolCount": 2,
+      "falseSuccessCount": 0,
+      "unauthorizedActionCount": 0
+    }
+  ]
+}
