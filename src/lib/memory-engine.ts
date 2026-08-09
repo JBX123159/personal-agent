@@ -2,7 +2,18 @@ import type { Memory } from "../domain/agent";
 
 const CLIMATE_MEMORY_ID = "climate_24_candidate";
 const MAX_ACTIVE_MEMORIES = 5;
+const MAX_MEMORY_CONTENT_LENGTH = 500;
 const MAX_OBSERVATION_COUNT = 1_000;
+const MIN_CLIMATE_TEMPERATURE = -20;
+const MAX_CLIMATE_TEMPERATURE = 60;
+
+function parseTemperature(content: string): number | undefined {
+  const match = content.match(/(-?\d+(?:\.\d+)?)\s*(?:℃|度)/);
+  if (!match) return undefined;
+
+  const temperature = Number(match[1]);
+  return Number.isFinite(temperature) ? temperature : undefined;
+}
 
 function isClimate24Preference(input: string): boolean {
   const normalized = input.replace(/[\s。！？!?]/g, "");
@@ -81,6 +92,57 @@ export function confirmMemory(memories: Memory[], id: string): Memory[] {
         }
       : undefined,
   );
+}
+
+export function editMemory(
+  memories: Memory[],
+  id: string,
+  content: string,
+): Memory[] {
+  const normalizedContent = content.trim();
+  if (
+    normalizedContent.length === 0 ||
+    normalizedContent.length > MAX_MEMORY_CONTENT_LENGTH
+  ) {
+    return memories;
+  }
+
+  return replaceMemory(memories, id, (memory) => {
+    if (memory.status === "deleted") return undefined;
+
+    const storedTemperature = memory.context?.temperature;
+    const currentTemperature =
+      typeof storedTemperature === "number"
+        ? storedTemperature
+        : parseTemperature(memory.content);
+    if (currentTemperature === undefined) {
+      return normalizedContent === memory.content
+        ? undefined
+        : { ...memory, content: normalizedContent };
+    }
+
+    const temperature = parseTemperature(normalizedContent);
+    if (
+      temperature === undefined ||
+      temperature < MIN_CLIMATE_TEMPERATURE ||
+      temperature > MAX_CLIMATE_TEMPERATURE
+    ) {
+      return undefined;
+    }
+
+    if (
+      normalizedContent === memory.content &&
+      temperature === currentTemperature
+    ) {
+      return undefined;
+    }
+
+    return {
+      ...memory,
+      content: normalizedContent,
+      context: { ...memory.context, temperature },
+    };
+  });
 }
 
 export function pauseMemory(memories: Memory[], id: string): Memory[] {

@@ -2,7 +2,7 @@
 
 一个用 **Memory（用户记忆）× Vehicle Context（车辆上下文）** 驱动车载智能决策的三栏交互 Demo。项目重点不是让大模型直接控制车辆，而是验证一条可解释、可授权、可执行、可验证的 Agent 产品闭环。
 
-> 当前状态：Phase 1 闭环、Agnes 结构化决策接入、Memory 生命周期、异常工具结果和 15 条确定性 Eval 已实现。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
+> 当前状态：Phase 1 闭环与 Phase 2 已完成，包括 Agnes 结构化决策、Memory 完整控制、异常工具结果和 15 条确定性 Eval。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
 
 ## 在线链接
 
@@ -65,7 +65,7 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 - Agnes `agnes-2.5-flash` 真实服务端调用路径。
 - 强制函数调用形式的 Structured Output（结构化输出）与运行时参数校验。
 - 程序权限裁决覆盖 LLM 提议，LLM 无法绕过授权和确认。
-- Memory 从观察、Candidate、Active 到 Pause、Resume、Forget 的生命周期。
+- Memory 从观察、Candidate、Active 到 Edit、Pause、Resume、Forget 的完整控制。
 - State Verification：工具自报成功但状态不一致时，禁止宣称成功。
 - FAILED、TIMEOUT、Partial Success（部分成功）的如实回复。
 - 15 条不依赖外部 LLM 的确定性 Eval，以及 JSON 结果文件。
@@ -122,14 +122,15 @@ npm run dev
 6. 点击“确认并执行方案”。
 7. 预期：完成车辆状态读取、补能站与餐厅查询、导航和空调设置；Verification 通过后才显示完成回复。
 
-### Scenario 02：Memory Candidate → Active → Pause / Forget
+### Scenario 02：Memory Candidate → Active → Edit → Pause / Forget
 
 1. 连续发送 3 次 `空调24℃就行`。
 2. 前两次只累计观察；第 3 次后 Memory 面板出现 `candidate`，观察次数为 3。
 3. Candidate 未确认时不会授权空调写操作。点击“确认偏好”后，状态变为 `active`。
-4. 再次发送同一句话，Active Memory 被引用，24℃ 空调操作可执行。
-5. 点击“暂停”后，Memory 变为 `suspended`，不再参与决策；点击“恢复”可重新启用。
-6. 点击“忘记”后，Memory 变为 `deleted`，从默认列表消失且不再传给 Agnes 或用于权限授权。
+4. 点击“编辑”：删除温度会被拦截；保存“偏好将空调设置为 23℃”后，状态仍为 `active`，结构化温度同步为 23。
+5. 此时再次发送“空调 24℃ 就行”，24℃ 操作会因与 Active Memory 不一致而被 Permission Engine 拒绝；编辑回 24℃ 后可再次授权。
+6. 点击“暂停”后，Memory 变为 `suspended`，不再参与决策；点击“恢复”可重新启用。
+7. 点击“忘记”后，Memory 变为 `deleted`，从默认列表消失且不再传给 Agnes 或用于权限授权。
 
 ### Scenario 03：FAILED、TIMEOUT 与 Partial Success
 
@@ -198,6 +199,8 @@ npm run eval
 
 - 相同的“空调 24℃”偏好观察 3 次后形成 Candidate。
 - Candidate 必须由用户确认后才能成为 Active。
+- 非 Deleted Memory 可编辑 1～500 个字符；编辑不会改变原状态或用户确认结果。
+- 温度类 Memory 必须保留 -20～60℃ 的温度，保存时同步更新结构化 `context.temperature`。
 - Suspended 和 Deleted Memory 不参与决策，也不会传给 Agnes。
 - 当前 Memory 仅保存在浏览器会话中，刷新页面会重置。
 

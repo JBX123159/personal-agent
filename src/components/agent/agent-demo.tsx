@@ -31,6 +31,7 @@ import {
 } from "@/lib/execution-pipeline";
 import {
   confirmMemory,
+  editMemory,
   forgetMemory,
   observeMemoryFromInput,
   pauseMemory,
@@ -248,6 +249,16 @@ export function AgentDemo() {
     setMemories((current) => action(current, id));
   }
 
+  function handleEditMemory(id: string, content: string): boolean {
+    if (contextLocked) return false;
+
+    const nextMemories = editMemory(memories, id, content);
+    if (nextMemories === memories) return false;
+
+    setMemories(nextMemories);
+    return true;
+  }
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.12),_transparent_36%),linear-gradient(145deg,#020617_0%,#07111f_48%,#020617_100%)] px-4 py-5 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1800px]">
@@ -310,6 +321,7 @@ export function AgentDemo() {
             memoryControlsDisabled={contextLocked}
             onStatusChange={handleToolStatusChange}
             onConfirmMemory={(id) => updateMemory(confirmMemory, id)}
+            onEditMemory={handleEditMemory}
             onPauseMemory={(id) => updateMemory(pauseMemory, id)}
             onResumeMemory={(id) => updateMemory(resumeMemory, id)}
             onForgetMemory={(id) => updateMemory(forgetMemory, id)}

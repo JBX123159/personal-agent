@@ -6,6 +6,7 @@ import { createMockMemories } from "../data/mock-data";
 
 import {
   confirmMemory,
+  editMemory,
   forgetMemory,
   observeMemoryFromInput,
   pauseMemory,
@@ -103,6 +104,91 @@ test("Forget 后不参与决策", () => {
   const forgotten = forgetMemory(activeMemories, "climate_24_candidate");
   assert.equal(forgotten[0].status, "deleted");
   assert.equal(selectActiveMemories(forgotten).length, 0);
+});
+
+test("编辑温度 Memory 时同步内容与结构化温度", () => {
+  const edited = editMemory(
+    activeMemories,
+    "climate_24_candidate",
+    "  夏季独自驾驶偏好 23℃  ",
+  );
+
+  assert.notStrictEqual(edited, activeMemories);
+  assert.equal(edited[0].content, "夏季独自驾驶偏好 23℃");
+  assert.equal(edited[0].context?.temperature, 23);
+  assert.equal(edited[0].status, "active");
+  assert.equal(edited[0].userConfirmed, true);
+});
+
+test("编辑旧版温度 Memory 时补齐结构化温度并拒绝丢失温度", () => {
+  const memories = createMockMemories();
+  const climateMemory = memories.find(
+    (memory) => memory.id === "summer_climate_24",
+  );
+  assert.ok(climateMemory);
+
+  assert.strictEqual(
+    editMemory(memories, climateMemory.id, "喜欢凉爽一些"),
+    memories,
+  );
+
+  const edited = editMemory(
+    memories,
+    climateMemory.id,
+    "夏季独自驾驶时偏好 23℃",
+  );
+  const editedClimateMemory = edited.find(
+    (memory) => memory.id === "summer_climate_24",
+  );
+  assert.equal(editedClimateMemory?.content, "夏季独自驾驶时偏好 23℃");
+  assert.equal(editedClimateMemory?.context?.temperature, 23);
+});
+
+test("编辑普通 Memory 时保留原有上下文和生命周期状态", () => {
+  const memories = createMockMemories();
+  const original = memories[0];
+  const edited = editMemory(memories, original.id, "周五下班先去健身房");
+
+  assert.equal(edited[0].content, "周五下班先去健身房");
+  assert.deepEqual(edited[0].context, original.context);
+  assert.equal(edited[0].status, original.status);
+  assert.equal(edited[0].userConfirmed, original.userConfirmed);
+});
+
+test("非法 Memory 编辑不修改原数组", () => {
+  assert.strictEqual(
+    editMemory(activeMemories, "climate_24_candidate", "   "),
+    activeMemories,
+  );
+  assert.strictEqual(
+    editMemory(activeMemories, "climate_24_candidate", "a".repeat(501)),
+    activeMemories,
+  );
+  assert.strictEqual(
+    editMemory(activeMemories, "missing", "偏好将空调设置为 23℃"),
+    activeMemories,
+  );
+  assert.strictEqual(
+    editMemory(activeMemories, "climate_24_candidate", "喜欢凉爽一些"),
+    activeMemories,
+  );
+  assert.strictEqual(
+    editMemory(activeMemories, "climate_24_candidate", "偏好将空调设置为 61℃"),
+    activeMemories,
+  );
+
+  const deleted = forgetMemory(activeMemories, "climate_24_candidate");
+  assert.strictEqual(
+    editMemory(deleted, "climate_24_candidate", "偏好将空调设置为 23℃"),
+    deleted,
+  );
+});
+
+test("内容和温度都未变化时返回原数组", () => {
+  assert.strictEqual(
+    editMemory(activeMemories, "climate_24_candidate", candidateMemory.content),
+    activeMemories,
+  );
 });
 
 test("非法 ID 和非法状态转换返回原数组", () => {

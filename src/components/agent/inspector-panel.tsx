@@ -12,11 +12,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Memory, ToolName, ToolStatus } from "@/domain/agent";
 import type { AgentExecutionRun } from "@/domain/structured-agent";
+import { MemoryInspector } from "@/components/agent/memory-inspector";
 import {
   ContextInspector,
   EmptyInspectorState,
   GoalInspector,
-  MemoryInspector,
   PlanInspector,
   SafetyInspector,
   ToolsInspector,
@@ -30,6 +30,7 @@ interface InspectorPanelProps {
   memoryControlsDisabled: boolean;
   onStatusChange: (tool: ToolName, status: ToolStatus) => void;
   onConfirmMemory: (id: string) => void;
+  onEditMemory: (id: string, content: string) => boolean;
   onPauseMemory: (id: string) => void;
   onResumeMemory: (id: string) => void;
   onForgetMemory: (id: string) => void;
@@ -43,6 +44,7 @@ export function InspectorPanel({
   memoryControlsDisabled,
   onStatusChange,
   onConfirmMemory,
+  onEditMemory,
   onPauseMemory,
   onResumeMemory,
   onForgetMemory,
@@ -76,6 +78,7 @@ export function InspectorPanel({
               memories={memories}
               disabled={memoryControlsDisabled}
               onConfirm={onConfirmMemory}
+              onEdit={onEditMemory}
               onPause={onPauseMemory}
               onResume={onResumeMemory}
               onForget={onForgetMemory}

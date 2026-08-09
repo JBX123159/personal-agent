@@ -3,10 +3,9 @@
 import { CheckCircle2, CircleAlert, CircleDashed, ShieldCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toolLabels, toolNames } from "@/data/mock-data";
-import type { Memory, ToolName, ToolStatus } from "@/domain/agent";
+import type { ToolName, ToolStatus } from "@/domain/agent";
 import type { AgentExecutionRun } from "@/domain/structured-agent";
 import {
   PermissionOutcomeBadge,
@@ -49,120 +48,6 @@ export function ContextInspector({ run }: { run: AgentExecutionRun }) {
           >
             <span className="text-xs text-slate-500">{label}</span>
             <span className="text-right text-sm text-slate-200">{value}</span>
-          </div>
-        ))}
-      </div>
-    </InspectorScroll>
-  );
-}
-
-export function MemoryInspector({
-  memories,
-  disabled,
-  onConfirm,
-  onPause,
-  onResume,
-  onForget,
-}: {
-  memories: Memory[];
-  disabled: boolean;
-  onConfirm: (id: string) => void;
-  onPause: (id: string) => void;
-  onResume: (id: string) => void;
-  onForget: (id: string) => void;
-}) {
-  const visibleMemories = memories.filter(
-    (memory) => memory.status !== "deleted",
-  );
-
-  return (
-    <InspectorScroll>
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs text-slate-500">只有已确认的 Active Memory 参与决策</p>
-        <Badge variant="outline" className="border-white/10 text-slate-400">
-          {visibleMemories.length} 条
-        </Badge>
-      </div>
-      <div className="space-y-3">
-        {visibleMemories.map((memory) => (
-          <div
-            key={memory.id}
-            className="rounded-xl border border-white/8 bg-white/[0.025] p-3"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <code className="text-xs text-cyan-300">{memory.id}</code>
-              <Badge variant="outline" className="border-white/10 text-slate-400 uppercase">
-                {memory.status}
-              </Badge>
-            </div>
-            <p className="mt-2 text-sm leading-6 text-slate-200">{memory.content}</p>
-            <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
-              <span>{memory.type}</span>
-              <span>置信度 {memory.confidence.toFixed(2)}</span>
-              <span>观察 {memory.observationCount} 次</span>
-              <span>{memory.userConfirmed ? "用户已确认" : "未确认"}</span>
-            </div>
-            {memory.status === "candidate" ? (
-              <div className="mt-3">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={() => onConfirm(memory.id)}
-                  className="bg-emerald-400 text-emerald-950 hover:bg-emerald-300"
-                >
-                  确认偏好
-                </Button>
-              </div>
-            ) : null}
-            {memory.status === "active" ? (
-              <div className="mt-3 flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={() => onPause(memory.id)}
-                  className="border-amber-400/20 text-amber-200 hover:bg-amber-400/10"
-                >
-                  暂停
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={() => onForget(memory.id)}
-                  className="border-rose-400/20 text-rose-200 hover:bg-rose-400/10"
-                >
-                  忘记
-                </Button>
-              </div>
-            ) : null}
-            {memory.status === "suspended" ? (
-              <div className="mt-3 flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={() => onResume(memory.id)}
-                  className="border-emerald-400/20 text-emerald-200 hover:bg-emerald-400/10"
-                >
-                  恢复
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={() => onForget(memory.id)}
-                  className="border-rose-400/20 text-rose-200 hover:bg-rose-400/10"
-                >
-                  忘记
-                </Button>
-              </div>
-            ) : null}
           </div>
         ))}
       </div>

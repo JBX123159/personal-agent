@@ -1,7 +1,7 @@
 # Personal Agent：Agnes Structured Decision 与 Eval 设计
 
 日期：2026-08-08
-状态：用户已确认，等待文档复核
+状态：用户已确认，Phase 2 已完成
 
 ## 1. 目标
 
@@ -10,7 +10,7 @@
 - 接入真实 Agnes AI，但仍只操作 Mock Tool。
 - 使用结构化 `AgentDecision`，拒绝自由文本直接驱动工具。
 - 保证程序 Permission Engine 可以覆盖并否决 LLM 决策。
-- 补齐 Memory Candidate、Active、Pause、Forget 生命周期。
+- 补齐 Memory Candidate、Active、Edit、Pause、Forget 生命周期。
 - 可演示 Tool `FAILED`、`TIMEOUT` 和 Partial Success。
 - 建立 15 条确定性 Eval Case 和简单结果报告。
 - 将 README 改为可用于 GitHub 项目展示的说明文档。
@@ -156,6 +156,10 @@ SUSPENDED -> DELETED
 - 相同偏好在演示逻辑中累计达到 3 次后，从 Temporary 形成 Candidate。
 - Candidate 不可自动用于敏感或个性化动作；用户点击确认后才成为 Active。
 - Active Memory 可以进入相关性筛选并传给 Agnes。
+- 非 Deleted Memory 可编辑内容；编辑不会隐式改变状态或用户确认结果。
+- 编辑后的内容去除首尾空格后必须为 1～500 个字符。
+- 温度类 Memory 的内容必须包含 -20～60℃ 的温度，保存时同步更新 `context.temperature`，避免展示内容与权限判断使用不同事实。
+- 非法编辑不修改原 Memory，并在界面显示可理解的错误。
 - Pause 将状态设为 Suspended；Suspended 不参与决策。
 - Forget 将状态设为 Deleted；Deleted 不参与决策，也不在默认 Memory 列表中展示。
 - 本阶段刷新页面后 Memory 可重置，README 明确说明这一限制。
@@ -201,8 +205,9 @@ SUSPENDED -> DELETED
 1. 前两次仅累计观察。
 2. 第三次形成 Candidate 并提示确认。
 3. 用户确认后变为 Active。
-4. 后续相关请求可引用该偏好。
-5. Pause 后不再使用；恢复后可再次使用；Forget 后不再使用。
+4. 用户可编辑 Memory 内容；温度类 Memory 同步更新结构化温度。
+5. 后续相关请求只能引用与动作参数一致的 Active 偏好。
+6. Pause 后不再使用；恢复后可再次使用；Forget 后不再使用。
 
 ### Scenario 03：回家，把空调调到 24℃
 
@@ -216,7 +221,7 @@ SUSPENDED -> DELETED
 
 - Chat Panel：增加真实 Agnes / Phase 1 Mock 决策模式标识、请求中、错误和重试状态。
 - Context Panel：保留 Vehicle Context 手动调整能力。
-- Inspector Panel：展示结构化 Decision、Permission 裁决、Tool Result、Verification Result；增加 Memory Confirm、Pause、Resume、Forget 控件。
+- Inspector Panel：展示结构化 Decision、Permission 裁决、Tool Result、Verification Result；增加 Memory Confirm、Edit、Pause、Resume、Forget 控件。
 - Tool 状态控制：继续允许手动选择 `SUCCESS`、`FAILED`、`TIMEOUT`。
 
 不重新设计整体视觉，不新增页面体系。
@@ -279,7 +284,7 @@ README 不写虚构上线数据、用户规模或性能指标。
 3. `npm run build` 通过。
 4. `npm run eval` 能运行 15 条 Case 并生成简单结果。
 5. 配置有效 Agnes Key 后，Scenario 01 可走真实 Structured Decision。
-6. Scenario 02 可完整演示 Candidate、Active、Pause、Resume、Forget。
+6. Scenario 02 可完整演示 Candidate、Active、Edit、Pause、Resume、Forget。
 7. Scenario 03 可稳定演示 FAILED、TIMEOUT 和 Partial Success。
 8. 高风险或未授权动作无法被 LLM 绕过。
 9. Tool 失败、超时或验证不通过时，不出现虚假成功回复。
