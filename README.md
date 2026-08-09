@@ -7,7 +7,7 @@
 ## 在线链接
 
 - GitHub 仓库：[JBX123159/personal-agent](https://github.com/JBX123159/personal-agent)
-- 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-fo1xn85n5-jbx1.vercel.app)
+- 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-k5jfyix81-jbx1.vercel.app)
 
 在线演示默认使用 Agnes AI，也可切换到 `Phase 1 Mock` 稳定演示 Scenario 01 / 02 / 03。
 
