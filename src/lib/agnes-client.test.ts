@@ -108,6 +108,63 @@ test("固定 Agnes 地址、模型和 submit_agent_decision 函数调用", async
   assert.match(messages[0].content, /location、query/);
 });
 
+test("第一次网络连接失败后自动重试一次", async () => {
+  let requestCount = 0;
+  const fetchFn: typeof fetch = async () => {
+    requestCount += 1;
+    if (requestCount === 1) {
+      throw new TypeError("fetch failed");
+    }
+    return createAgnesResponse();
+  };
+
+  const decision = await requestAgnesDecision(decisionRequest, {
+    apiKey: "test-key",
+    fetchFn,
+  });
+
+  assert.equal(requestCount, 2);
+  assert.equal(decision.intent, "clarify");
+});
+
+test("第一次 503 后自动重试一次", async () => {
+  let requestCount = 0;
+  const fetchFn: typeof fetch = async () => {
+    requestCount += 1;
+    return requestCount === 1
+      ? new Response(null, { status: 503 })
+      : createAgnesResponse();
+  };
+
+  const decision = await requestAgnesDecision(decisionRequest, {
+    apiKey: "test-key",
+    fetchFn,
+  });
+
+  assert.equal(requestCount, 2);
+  assert.equal(decision.intent, "clarify");
+});
+
+test("401 认证错误不重试", async () => {
+  let requestCount = 0;
+  const fetchFn: typeof fetch = async () => {
+    requestCount += 1;
+    return new Response(null, { status: 401 });
+  };
+
+  await assert.rejects(
+    requestAgnesDecision(decisionRequest, {
+      apiKey: "test-key",
+      fetchFn,
+    }),
+    (error: unknown) =>
+      error instanceof AgnesClientError &&
+      error.code === "UPSTREAM_ERROR" &&
+      error.status === 401,
+  );
+  assert.equal(requestCount, 1);
+});
+
 test("查询工具只接受明确声明的空参数", async () => {
   const searchDecision = {
     ...validDecision,
@@ -199,13 +256,40 @@ for (const [status, expectedMessage] of [
   });
 }
 
-test("20 秒超时机制可由测试参数缩短验证", async () => {
-  const fetchFn: typeof fetch = async (_input, init) =>
-    await new Promise<Response>((_resolve, reject) => {
+test("第一次超时后自动重试一次并受两次总上限约束", async () => {
+  let requestCount = 0;
+  const fetchFn: typeof fetch = async (_input, init) => {
+    requestCount += 1;
+    if (requestCount === 2) {
+      return createAgnesResponse();
+    }
+    return await new Promise<Response>((_resolve, reject) => {
       init?.signal?.addEventListener("abort", () => {
         reject(new DOMException("Aborted", "AbortError"));
       });
     });
+  };
+
+  const decision = await requestAgnesDecision(decisionRequest, {
+    apiKey: "test-key",
+    fetchFn,
+    timeoutMs: 5,
+  });
+
+  assert.equal(requestCount, 2);
+  assert.equal(decision.intent, "clarify");
+});
+
+test("连续两次超时后停止且不发起第三次请求", async () => {
+  let requestCount = 0;
+  const fetchFn: typeof fetch = async (_input, init) => {
+    requestCount += 1;
+    return await new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => {
+        reject(new DOMException("Aborted", "AbortError"));
+      });
+    });
+  };
 
   await assert.rejects(
     requestAgnesDecision(decisionRequest, {
@@ -214,8 +298,11 @@ test("20 秒超时机制可由测试参数缩短验证", async () => {
       timeoutMs: 5,
     }),
     (error: unknown) =>
-      error instanceof AgnesClientError && error.code === "TIMEOUT",
+      error instanceof AgnesClientError &&
+      error.code === "TIMEOUT" &&
+      /连续两次/.test(error.message),
   );
+  assert.equal(requestCount, 2);
 });
 test("上游不是合法 JSON 时拒绝结果", async () => {
   const fetchFn: typeof fetch = async () =>

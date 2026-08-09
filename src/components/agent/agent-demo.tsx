@@ -24,6 +24,7 @@ import type {
   StructuredAgentDecision,
 } from "@/domain/structured-agent";
 import { parseAgentDecision } from "@/lib/agent-decision-schema";
+import { getAgnesDecisionErrorMessage } from "@/lib/agnes-ui-error";
 import {
   completeAgentRun,
   prepareAgentRun,
@@ -143,7 +144,12 @@ export function AgentDemo() {
       ]);
     } catch (error) {
       setRun(null);
-      const message = error instanceof Error ? error.message : "未知错误";
+      const message =
+        decisionMode === "agnes"
+          ? getAgnesDecisionErrorMessage(error)
+          : error instanceof Error
+            ? error.message
+            : "未知错误";
       setInputError(
         decisionMode === "agnes"
           ? `Agnes 决策失败：${message}`

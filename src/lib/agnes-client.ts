@@ -8,7 +8,8 @@ import {
 const AGNES_DECISION_URL =
   "https://apihub.agnes-ai.com/v1/chat/completions";
 const AGNES_MODEL = "agnes-2.5-flash";
-const DEFAULT_TIMEOUT_MS = 20_000;
+const DEFAULT_ATTEMPT_TIMEOUT_MS = 15_000;
+const MAX_AGNES_ATTEMPTS = 2;
 
 interface AgnesClientOptions {
   apiKey?: string;
@@ -140,6 +141,73 @@ function readFunctionArguments(payload: unknown): string {
   );
 }
 
+function shouldRetryAgnesRequest(error: unknown) {
+  // 只重试暂时性故障；认证、限流和非法结构应直接交给用户处理。
+  return (
+    error instanceof AgnesClientError &&
+    (error.code === "TIMEOUT" ||
+      (error.code === "UPSTREAM_ERROR" &&
+        (error.status === undefined || error.status >= 500)))
+  );
+}
+
+async function fetchAgnesPayload(
+  fetchFn: typeof fetch,
+  apiKey: string,
+  body: string,
+  timeoutMs: number,
+): Promise<unknown> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    let response: Response;
+    try {
+      response = await fetchFn(AGNES_DECISION_URL, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body,
+      });
+    } catch {
+      if (controller.signal.aborted) {
+        throw new AgnesClientError(
+          "TIMEOUT",
+          "Agnes 单次请求超时，未执行任何工具。",
+        );
+      }
+      throw new AgnesClientError(
+        "UPSTREAM_ERROR",
+        "无法连接 Agnes 服务，请检查网络后重试。",
+      );
+    }
+
+    if (!response.ok) {
+      throw createUpstreamError(response.status);
+    }
+
+    try {
+      return await response.json();
+    } catch {
+      if (controller.signal.aborted) {
+        throw new AgnesClientError(
+          "TIMEOUT",
+          "Agnes 单次请求超时，未执行任何工具。",
+        );
+      }
+      throw new AgnesClientError(
+        "INVALID_RESPONSE",
+        "Agnes 返回了无法解析的响应。",
+      );
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function requestAgnesDecision(
   request: AgentDecisionRequest,
   options: AgnesClientOptions = {},
@@ -158,59 +226,47 @@ export async function requestAgnesDecision(
     Number.isFinite(options.timeoutMs) &&
     options.timeoutMs > 0
       ? options.timeoutMs
-      : DEFAULT_TIMEOUT_MS;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      : DEFAULT_ATTEMPT_TIMEOUT_MS;
   const eligibleMemories = filterEligibleMemories(request);
   const safeRequest = { ...request, memories: eligibleMemories };
+  const requestBody = JSON.stringify({
+    model: AGNES_MODEL,
+    temperature: 0.1,
+    messages: [createSystemMessage(), createUserMessage(safeRequest)],
+    tools: [AGENT_DECISION_TOOL],
+    tool_choice: {
+      type: "function",
+      function: { name: "submit_agent_decision" },
+    },
+  });
 
-  let response: Response;
-  try {
-    response = await fetchFn(AGNES_DECISION_URL, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: AGNES_MODEL,
-        temperature: 0.1,
-        messages: [createSystemMessage(), createUserMessage(safeRequest)],
-        tools: [AGENT_DECISION_TOOL],
-        tool_choice: {
-          type: "function",
-          function: { name: "submit_agent_decision" },
-        },
-      }),
-    });
-  } catch {
-    if (controller.signal.aborted) {
-      throw new AgnesClientError(
-        "TIMEOUT",
-        "Agnes 请求超过 20 秒，未执行任何工具。",
+  let payload: unknown = null;
+  for (let attempt = 1; attempt <= MAX_AGNES_ATTEMPTS; attempt += 1) {
+    // 两次尝试都发生在 Tool 执行前，失败不会产生任何车辆动作。
+    try {
+      payload = await fetchAgnesPayload(
+        fetchFn,
+        apiKey,
+        requestBody,
+        timeoutMs,
       );
+      break;
+    } catch (error) {
+      if (attempt < MAX_AGNES_ATTEMPTS && shouldRetryAgnesRequest(error)) {
+        continue;
+      }
+      if (
+        attempt === MAX_AGNES_ATTEMPTS &&
+        error instanceof AgnesClientError &&
+        error.code === "TIMEOUT"
+      ) {
+        throw new AgnesClientError(
+          "TIMEOUT",
+          "Agnes 连续两次请求超时，未执行任何工具。",
+        );
+      }
+      throw error;
     }
-    throw new AgnesClientError(
-      "UPSTREAM_ERROR",
-      "无法连接 Agnes 服务，请检查网络后重试。",
-    );
-  } finally {
-    clearTimeout(timeoutId);
-  }
-
-  if (!response.ok) {
-    throw createUpstreamError(response.status);
-  }
-
-  let payload: unknown;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new AgnesClientError(
-      "INVALID_RESPONSE",
-      "Agnes 返回了无法解析的响应。",
-    );
   }
 
   const functionArguments = readFunctionArguments(payload);
