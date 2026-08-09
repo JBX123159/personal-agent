@@ -7,7 +7,7 @@
 ## 在线链接
 
 - GitHub 仓库：[JBX123159/personal-agent](https://github.com/JBX123159/personal-agent)
-- 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-k5jfyix81-jbx1.vercel.app)
+- 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-qf3tutxid-jbx1.vercel.app)
 
 在线演示默认使用 Agnes AI，也可切换到 `Phase 1 Mock` 稳定演示 Scenario 01 / 02 / 03。
 
@@ -219,7 +219,7 @@ npm run eval
 - Mock Tool 保证失败、超时和验证不一致可以稳定复现，但不能代表真实车辆接口表现。
 - Memory 仅为前端会话状态，适合验证产品规则，不具备持久化能力。
 - 真实 Agnes 请求受网络、API 额度和上游服务状态影响；请求失败或结构校验失败时不会执行 Tool，用户可手动重试。
-- 2026-08-09 已使用本地 `.env.local` 完成真实 Agnes Scenario 01 在线 smoke：页面显示 `Decision Source：Agnes AI`，结构化决策通过校验；即使模型标记无需确认，程序仍将导航覆盖为 `HIGH + REQUIRE_CONFIRMATION`；用户确认后 4 个 Tool 均为 `SUCCESS`、状态验证通过且 `Case：PASS`。在线验收期间也观察到上游偶发超时，错误回合均未执行 Tool。`.env.local` 与 API Key 始终保持未跟踪状态。
+- 2026-08-09 已在公开 Preview 完成 Phase 2 smoke：页面无需登录；无温度的 Memory 编辑被拦截，有效 23℃ 编辑保存后仍为 Active；真实 Agnes Scenario 01 显示 `Decision Source：Agnes AI`，程序强制导航确认，确认后 4 个 Tool 均为 `SUCCESS`、状态验证通过且 `Case：PASS`。上游偶发失败或结构校验失败的回合均未执行 Tool。`.env.local` 与 API Key 始终保持未跟踪状态，线上 Key 仅保存为 Vercel Preview 敏感环境变量。
 
 ## 项目目录
 
