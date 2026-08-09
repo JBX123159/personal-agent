@@ -2,12 +2,14 @@
 
 一个用 **Memory（用户记忆）× Vehicle Context（车辆上下文）** 驱动车载智能决策的三栏交互 Demo。项目重点不是让大模型直接控制车辆，而是验证一条可解释、可授权、可执行、可验证的 Agent 产品闭环。
 
-> 当前状态：Phase 1、Phase 2 与 Phase 3 Eval 已完成，包括 Agnes 结构化决策、Memory 完整控制、异常工具结果和 20 条确定性 Eval。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
+> 当前状态：Phase 1～3 已完成，Phase 4 的 Voice Mode 与 PRD 已完成本地实现，等待公开 Preview 最终验收。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
 
 ## 在线链接
 
 - GitHub 仓库：[JBX123159/personal-agent](https://github.com/JBX123159/personal-agent)
 - 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-qf3tutxid-jbx1.vercel.app)
+- 产品需求文档：[阅读 Markdown PRD](docs/Personal-Agent-PRD.md)
+- 6 页交付版：[下载 PDF PRD](output/pdf/Personal-Agent-PRD.pdf)
 
 在线演示默认使用 Agnes AI，也可切换到 `Phase 1 Mock` 稳定演示 Scenario 01 / 02 / 03。
 
@@ -69,6 +71,8 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 - State Verification：工具自报成功但状态不一致时，禁止宣称成功。
 - FAILED、TIMEOUT、Partial Success（部分成功）的如实回复。
 - 20 条不依赖外部 LLM 的确定性 Eval，以及 TypeScript / Python 双重校验结果。
+- 浏览器 Web Speech 单句中文输入：识别结果只回填输入框，不自动发送；异常时回退文本。
+- 5～8 页 PRD 要求已交付为 Markdown 源文件和 6 页 PDF。
 
 ## 明确未实现
 
@@ -78,6 +82,7 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 - 数据库、登录、多用户和跨设备同步。
 - 云端或跨会话 Memory；刷新页面后 Mock Memory 会重置。
 - RAG（检索增强生成）、Vector DB（向量数据库）、MCP、Multi-Agent。
+- 付费语音模型、语音合成、音频上传或音频持久化。
 - 生产环境 SLA、线上用户量、性能或商业指标。
 
 ## 本地运行
@@ -88,6 +93,7 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 - npm
 - 如需运行 Python 指标复算：Python 3.10 或更高版本（只使用标准库）
 - 如需验证真实 Agnes 模式：有效的 Agnes API Key 和可访问 Agnes 服务的网络
+- 如需使用 Voice Mode：支持 Web Speech API 的浏览器和麦克风权限；不支持时可继续使用文本输入
 
 ### 安装与启动
 
@@ -150,6 +156,16 @@ npm run dev
 2. 将 `setClimateTemperature` 设为 `TIMEOUT`。
 3. 发送指令并确认执行。
 4. 预期回复：导航已完成，空调结果未知；系统不会把超时表述为成功。
+
+## Voice Mode
+
+1. 使用支持 Web Speech API 的浏览器打开 `/agent`。
+2. 点击输入框右侧的麦克风按钮并允许麦克风权限。
+3. 说出一条中文指令，例如“今晚还是老样子吧”。
+4. 识别结束后，文字只会填入输入框；检查无误后再点击发送。
+5. 再次点击监听中的按钮可以停止识别。
+
+浏览器不支持、麦克风权限被拒绝、没有识别到语音、无可用麦克风或识别网络异常时，页面会显示中文提示并继续保留文本输入。Voice Mode 不会绕过原有输入校验、Permission Engine 或高影响动作确认。部分浏览器的语音识别可能使用在线服务，因此本项目不承诺离线识别，也不保存音频。
 
 ## Eval
 
@@ -227,6 +243,7 @@ npm run eval:python
 - Mock Tool 保证失败、超时和验证不一致可以稳定复现，但不能代表真实车辆接口表现。
 - Memory 仅为前端会话状态，适合验证产品规则，不具备持久化能力。
 - 真实 Agnes 请求受网络、API 额度和上游服务状态影响；请求失败或结构校验失败时不会执行 Tool，用户可手动重试。
+- Web Speech API 兼容性有限；Voice Mode 只作为可降级输入方式，识别结果不会自动提交。
 - 2026-08-09 已在公开 Preview 完成 Phase 2 smoke：页面无需登录；无温度的 Memory 编辑被拦截，有效 23℃ 编辑保存后仍为 Active；真实 Agnes Scenario 01 显示 `Decision Source：Agnes AI`，程序强制导航确认，确认后 4 个 Tool 均为 `SUCCESS`、状态验证通过且 `Case：PASS`。上游偶发失败或结构校验失败的回合均未执行 Tool。`.env.local` 与 API Key 始终保持未跟踪状态，线上 Key 仅保存为 Vercel Preview 敏感环境变量。
 
 ## 项目目录
@@ -247,7 +264,11 @@ npm run eval:python
 │  ├─ run_eval.py               # Python 指标复算与摘要脚本
 │  ├─ test_run_eval.py          # Python 标准库单元测试
 │  └─ results/                  # TypeScript 与 Python 最新结果
-├─ docs/superpowers/            # 已确认的设计与实施计划
+├─ docs/
+│  ├─ Personal-Agent-PRD.md     # FINAL V1 产品需求文档
+│  └─ superpowers/              # 已确认的设计与实施计划
+├─ output/pdf/
+│  └─ Personal-Agent-PRD.pdf    # 6 页 PRD 交付版
 ├─ .env.example                 # 仅包含环境变量占位符
 └─ README.md
 ```
@@ -269,3 +290,7 @@ npm run build
 - [Agnes AI 官方文档总览](https://agnes-ai.com/en/docs/overview)
 - [Agnes 2.5 Flash 官方文档](https://agnes-ai.com/en/docs/agnes-25-flash)
 - [AgnesAI-Models 官方 GitHub 仓库](https://github.com/AgnesAI-Labs/AgnesAI-Models)
+
+## Voice 参考资料
+
+- [MDN：SpeechRecognition](https://developer.mozilla.org/docs/Web/API/SpeechRecognition)

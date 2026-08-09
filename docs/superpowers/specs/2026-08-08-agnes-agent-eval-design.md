@@ -1,7 +1,7 @@
-# Personal Agent：Agnes Structured Decision 与 Eval 设计
+# Personal Agent V1：Agnes、Eval 与 Phase 4 展示设计
 
 日期：2026-08-08
-状态：用户已确认，Phase 3 Eval 已完成
+状态：用户已确认，Phase 1～3 已完成，Phase 4 按冻结范围实施
 
 ## 1. 目标
 
@@ -14,6 +14,9 @@
 - 可演示 Tool `FAILED`、`TIMEOUT` 和 Partial Success。
 - 建立 20 条确定性 Eval Case，并用 TypeScript 执行、Python 复算指标。
 - 将 README 改为可用于 GitHub 项目展示的说明文档。
+- 增加基于浏览器 Web Speech API 的可降级 Voice Mode。
+- 交付 5～8 页 PRD Markdown 与 PDF。
+- 复用现有 Vercel 项目完成公开 Preview 部署与 Smoke Test。
 
 本次用户的新指令覆盖原先“Phase 1 不调用 LLM”的限制，但不扩大到真实汽车、地图、数据库或后续复杂架构。
 
@@ -23,8 +26,11 @@
 - 不接入真实汽车、地图、餐厅、充电站接口。
 - 不实现登录、多用户、云端 Memory 或跨设备同步。
 - 不让 LLM 直接执行 Tool，也不相信 LLM 自报的执行结果。
-- 不自动创建 GitHub 远程仓库，不推送或部署。
-- 不提前实现原 FINAL V1 的 Phase 4 展示能力。
+- 不接入付费语音模型、语音合成或语音文件上传。
+- 不在识别完成后自动发送指令，用户必须核对文字后主动发送。
+- 不新增页面体系，不重新设计现有三栏界面。
+- 不部署 Production，不扩大现有 `AGNES_API_KEY` 的 Preview 环境授权范围。
+- 不继续开发 Phase 4 之外的新业务能力；本阶段完成即标记 V1 COMPLETE。
 
 ## 3. 总体架构
 
@@ -219,12 +225,20 @@ SUSPENDED -> DELETED
 
 在现有三栏 Skeleton 内最小增量修改：
 
-- Chat Panel：增加真实 Agnes / Phase 1 Mock 决策模式标识、请求中、错误和重试状态。
+- Chat Panel：保留真实 Agnes / Phase 1 Mock 决策模式标识、请求中、错误和重试状态；在输入框右侧增加 Voice Mode 按钮。
 - Context Panel：保留 Vehicle Context 手动调整能力。
 - Inspector Panel：展示结构化 Decision、Permission 裁决、Tool Result、Verification Result；增加 Memory Confirm、Edit、Pause、Resume、Forget 控件。
 - Tool 状态控制：继续允许手动选择 `SUCCESS`、`FAILED`、`TIMEOUT`。
 
-不重新设计整体视觉，不新增页面体系。
+Voice Mode 交互规则：
+
+1. 点击麦克风后开始单句中文识别，按钮进入“正在聆听”状态，再次点击可停止。
+2. 最终识别文字只回填当前输入框，不自动发送，也不绕过原有输入校验、Permission 和确认流程。
+3. 识别失败、麦克风权限被拒绝、无音频输入或网络错误时，显示可理解的中文提示并保留文本输入。
+4. 浏览器不存在 `SpeechRecognition` 或 `webkitSpeechRecognition` 时，禁用麦克风按钮并明确提示继续使用文本输入。
+5. 识别期间禁止发送，避免提交旧文本；Decision 执行中或等待方案确认时禁止启动语音。
+
+不重新设计整体视觉，不新增页面体系。UI 微调仅限 Voice 状态、必要的可访问性标签和小屏布局溢出修正。
 
 ## 11. Eval 设计
 
@@ -266,8 +280,32 @@ README 至少包含：
 - 20 条 Eval、TypeScript / Python 两种运行方法和当前结果；
 - Permission、Memory、Verification 的关键产品规则；
 - 安全说明、已知限制和技术取舍。
+- Voice Mode 使用、浏览器兼容性、麦克风权限和文本降级说明。
+- PRD Markdown、PDF 与公开 Preview 链接。
 
 README 不写虚构上线数据、用户规模或性能指标。
+
+## 12.1 Phase 4 PRD
+
+新增 `docs/Personal-Agent-PRD.md` 和 `output/pdf/Personal-Agent-PRD.pdf`，PDF 控制为 5～8 页。两者使用同一事实口径，至少覆盖：
+
+- 用户问题与产品假设；
+- 三个核心 Scenario；
+- Memory 生命周期和使用边界；
+- Permission Engine 与程序覆盖 LLM；
+- FAILED、TIMEOUT、Partial Success 和 State Verification；
+- 20 条 Eval、实际指标和指标解释；
+- MVP 取舍、未实现范围和 V1 完成线。
+
+PRD 不写虚构用户、上线规模、性能数据或商业效果。
+
+## 12.2 部署与公开验收
+
+- 复用现有 Vercel `personal-agent` 项目执行 Preview 部署。
+- 继续使用已授权的 Preview 敏感环境变量，不复制到 Production。
+- 部署链接必须无需登录即可打开 `/agent`。
+- 公开 Smoke Test 至少验证页面加载、文本输入、Voice Mode 支持或降级、Mock Scenario 01、README 链接和无密钥泄露。
+- 部署完成后记录实际 Preview URL 和验证日期；不得把 Vercel READY 状态等同于公开可用。
 
 ## 13. 安全与配置
 
@@ -292,6 +330,11 @@ README 不写虚构上线数据、用户规模或性能指标。
 9. 高风险或未授权动作无法被 LLM 绕过。
 10. Tool 失败、超时或验证不通过时，不出现虚假成功回复。
 11. README 能让新用户独立完成安装和演示。
+12. 支持 Web Speech API 的浏览器可把单句中文识别结果回填输入框且不会自动发送。
+13. 不支持或拒绝麦克风权限时，页面继续提供文本输入且不崩溃。
+14. PRD Markdown 与 PDF 内容一致，PDF 为 5～8 页且逐页无截断、重叠或乱码。
+15. Vercel Preview 无需登录即可打开，公开 Smoke Test 通过。
+16. GitHub 不包含 API Key、`.env.local`、本地绝对路径或临时文件。
 
 ## 15. 预期文件改动
 
@@ -312,5 +355,13 @@ README 不写虚构上线数据、用户规模或性能指标。
 - `.env.example`
 - `package.json`
 - `README.md`
+- `src/lib/speech-recognition.ts`
+- `src/lib/speech-recognition.test.ts`
+- `src/components/agent/use-speech-input.ts`
+- `src/components/agent/chat-panel.tsx`
+- `src/components/agent/inspector-panel.tsx`
+- `docs/Personal-Agent-PRD.md`
+- `output/pdf/Personal-Agent-PRD.pdf`
+- `docs/superpowers/plans/2026-08-09-personal-agent-phase4.md`
 
 实际实施时如发现现有文件职责不同，只做完成需求所需的最小调整，不进行全局重构。

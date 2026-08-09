@@ -61,8 +61,11 @@ export function InspectorPanel({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="context" className="gap-4">
-          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-white/[0.045] p-1">
+        <Tabs
+          defaultValue="context"
+          className="min-w-0 flex-col gap-4 lg:flex-row"
+        >
+          <TabsList className="grid h-auto w-full shrink-0 grid-cols-3 gap-1 bg-white/[0.045] p-1 lg:w-[62%]">
             <TabsTrigger value="context">Context</TabsTrigger>
             <TabsTrigger value="memory">Memory</TabsTrigger>
             <TabsTrigger value="goal">Goal</TabsTrigger>

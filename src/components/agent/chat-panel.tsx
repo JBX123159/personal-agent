@@ -1,7 +1,8 @@
 "use client";
 
-import { Bot, Check, RotateCcw, Send, User } from "lucide-react";
+import { Bot, Check, Mic, RotateCcw, Send, Square, User } from "lucide-react";
 
+import { useSpeechInput } from "@/components/agent/use-speech-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,6 +51,17 @@ export function ChatPanel({
   onRetry,
   onDecisionModeChange,
 }: ChatPanelProps) {
+  const interactionDisabled = processing || phase === "awaiting_confirmation";
+  const speech = useSpeechInput(onInputChange);
+  const speechButtonLabel =
+    speech.supported === null
+      ? "正在检测语音识别支持"
+      : speech.supported === false
+        ? "当前浏览器不支持语音识别"
+        : speech.listening
+          ? "停止语音识别"
+          : "开始语音输入";
+
   return (
     <Card className="flex h-full min-h-[650px] flex-col border-white/10 bg-slate-950/80 text-slate-100 shadow-2xl shadow-cyan-950/20 backdrop-blur">
       <CardHeader className="border-b border-white/8">
@@ -145,7 +157,7 @@ export function ChatPanel({
           </Button>
         ) : null}
         <form
-          className="flex gap-2"
+          className="flex items-center gap-2"
           onSubmit={(event) => {
             event.preventDefault();
             onSubmit();
@@ -154,24 +166,54 @@ export function ChatPanel({
           <Input
             data-testid="agent-input"
             aria-label="输入对 Personal Agent 的指令"
+            aria-describedby={speech.message ? "voice-status" : undefined}
             aria-invalid={Boolean(inputError)}
             value={input}
-            disabled={processing || phase === "awaiting_confirmation"}
+            disabled={interactionDisabled || speech.listening}
             onChange={(event) => onInputChange(event.target.value)}
             placeholder="今晚还是老样子吧"
-            className="h-10 border-white/10 bg-white/[0.04] text-slate-100 placeholder:text-slate-600 focus-visible:border-cyan-400/60 focus-visible:ring-cyan-400/15"
+            className="h-10 min-w-0 border-white/10 bg-white/[0.04] text-slate-100 placeholder:text-slate-600 focus-visible:border-cyan-400/60 focus-visible:ring-cyan-400/15"
           />
+          <Button
+            data-testid="voice-input"
+            type="button"
+            size="icon-lg"
+            aria-label={speechButtonLabel}
+            aria-pressed={speech.listening}
+            title={speechButtonLabel}
+            disabled={interactionDisabled || speech.supported !== true}
+            onClick={speech.toggle}
+            className={
+              speech.listening
+                ? "bg-rose-400 text-rose-950 hover:bg-rose-300"
+                : "border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/20"
+            }
+          >
+            {speech.listening ? <Square /> : <Mic />}
+            <span className="sr-only">{speechButtonLabel}</span>
+          </Button>
           <Button
             data-testid="send-message"
             type="submit"
             size="icon-lg"
-            disabled={processing || phase === "awaiting_confirmation"}
+            disabled={interactionDisabled || speech.listening}
             className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
           >
             <Send />
             <span className="sr-only">发送</span>
           </Button>
         </form>
+        {speech.message ? (
+          <p
+            id="voice-status"
+            role={speech.hasError ? "alert" : "status"}
+            className={
+              speech.hasError ? "text-xs text-rose-300" : "text-xs text-slate-500"
+            }
+          >
+            {speech.message}
+          </p>
+        ) : null}
         {inputError ? (
           <div className="flex items-center justify-between gap-3">
             <p role="alert" className="text-xs text-rose-300">
