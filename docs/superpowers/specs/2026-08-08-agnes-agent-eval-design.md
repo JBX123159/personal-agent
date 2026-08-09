@@ -1,7 +1,7 @@
 # Personal Agent：Agnes Structured Decision 与 Eval 设计
 
 日期：2026-08-08
-状态：用户已确认，Phase 2 已完成
+状态：用户已确认，Phase 3 Eval 已完成
 
 ## 1. 目标
 
@@ -12,7 +12,7 @@
 - 保证程序 Permission Engine 可以覆盖并否决 LLM 决策。
 - 补齐 Memory Candidate、Active、Edit、Pause、Forget 生命周期。
 - 可演示 Tool `FAILED`、`TIMEOUT` 和 Partial Success。
-- 建立 15 条确定性 Eval Case 和简单结果报告。
+- 建立 20 条确定性 Eval Case，并用 TypeScript 执行、Python 复算指标。
 - 将 README 改为可用于 GitHub 项目展示的说明文档。
 
 本次用户的新指令覆盖原先“Phase 1 不调用 LLM”的限制，但不扩大到真实汽车、地图、数据库或后续复杂架构。
@@ -24,7 +24,7 @@
 - 不实现登录、多用户、云端 Memory 或跨设备同步。
 - 不让 LLM 直接执行 Tool，也不相信 LLM 自报的执行结果。
 - 不自动创建 GitHub 远程仓库，不推送或部署。
-- 不提前实现原 FINAL V1 中仍属于 Phase 2/3/4、且未被本轮清单明确要求的功能。
+- 不提前实现原 FINAL V1 的 Phase 4 展示能力。
 
 ## 3. 总体架构
 
@@ -228,13 +228,13 @@ SUSPENDED -> DELETED
 
 ## 11. Eval 设计
 
-建立 15 条固定 Eval Case：
+建立 20 条固定 Eval Case：
 
-- Normal：3 条
-- Ambiguous：2 条
-- Memory：3 条
-- Tool Failure / Timeout / Partial Success：3 条
-- Permission：2 条
+- Normal：4 条
+- Ambiguous：3 条
+- Memory：4 条
+- Tool Failure / Timeout / Partial Success：4 条
+- Permission：3 条
 - Replanning / Verification：2 条
 
 每条 Case 包含输入 Context、Memory、Tool 状态和期望断言。Eval 采用确定性程序判定，不使用 LLM-as-Judge。
@@ -248,7 +248,9 @@ SUSPENDED -> DELETED
 - False Success Rate
 - Unauthorized Action Count
 
-实现一个轻量 TypeScript Eval Runner，复用项目中的权限、工具和验证逻辑，生成终端摘要和 `eval/results/latest.json`。只增加轻量开发依赖 `tsx`，不引入测试框架或评测平台。
+TypeScript Eval Runner 继续复用项目中的权限、工具和验证逻辑，生成终端摘要和 `eval/results/latest.json`。
+
+新增只使用 Python 标准库的 `eval/run_eval.py`：先调用 TypeScript Runner，再独立校验 Case 总数、分类数量、ID 唯一性和指标计算，生成 `eval/results/latest-python.json`。Python 脚本不得复制 Agent 业务逻辑，也不引入第三方评测框架。
 
 说明：真实 Agnes 输出存在波动，因此默认 Eval 主要验证确定性系统边界；另外提供可选 Agnes smoke case，只在存在 API Key 时手动运行，不将外部 API 稳定性混入本地固定分数。
 
@@ -261,7 +263,7 @@ README 至少包含：
 - 已实现能力与明确未实现内容；
 - 安装、`.env.local` 配置和启动方法；
 - Scenario 01/02/03 演示步骤；
-- 15 条 Eval 的运行方法和当前结果；
+- 20 条 Eval、TypeScript / Python 两种运行方法和当前结果；
 - Permission、Memory、Verification 的关键产品规则；
 - 安全说明、已知限制和技术取舍。
 
@@ -282,13 +284,14 @@ README 不写虚构上线数据、用户规模或性能指标。
 1. `npm run typecheck` 通过。
 2. `npm run lint` 通过。
 3. `npm run build` 通过。
-4. `npm run eval` 能运行 15 条 Case 并生成简单结果。
-5. 配置有效 Agnes Key 后，Scenario 01 可走真实 Structured Decision。
-6. Scenario 02 可完整演示 Candidate、Active、Edit、Pause、Resume、Forget。
-7. Scenario 03 可稳定演示 FAILED、TIMEOUT 和 Partial Success。
-8. 高风险或未授权动作无法被 LLM 绕过。
-9. Tool 失败、超时或验证不通过时，不出现虚假成功回复。
-10. README 能让新用户独立完成安装和演示。
+4. `npm run eval` 能运行 20 条 Case 并生成 `latest.json`。
+5. `npm run eval:python` 能复算指标并生成 `latest-python.json`。
+6. 配置有效 Agnes Key 后，Scenario 01 可走真实 Structured Decision。
+7. Scenario 02 可完整演示 Candidate、Active、Edit、Pause、Resume、Forget。
+8. Scenario 03 可稳定演示 FAILED、TIMEOUT 和 Partial Success。
+9. 高风险或未授权动作无法被 LLM 绕过。
+10. Tool 失败、超时或验证不通过时，不出现虚假成功回复。
+11. README 能让新用户独立完成安装和演示。
 
 ## 15. 预期文件改动
 
@@ -304,7 +307,8 @@ README 不写虚构上线数据、用户规模或性能指标。
 - `src/lib/memory-engine.ts`
 - `src/lib/response-composer.ts`
 - `eval/*`
-- `scripts/run-eval.ts`
+- `eval/run_eval.py`
+- `eval/run-eval.ts`
 - `.env.example`
 - `package.json`
 - `README.md`

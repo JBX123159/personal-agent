@@ -440,9 +440,9 @@ test("未知指令只澄清且不提出越权工具", () => {
   assert.deepEqual(decision.proposedToolCalls, []);
 });
 
-test("Eval 固定为 15 条、ID 唯一且分类数量正确", () => {
-  assert.equal(evalCases.length, 15);
-  assert.equal(new Set(evalCases.map((item) => item.id)).size, 15);
+test("Eval 固定为 20 条、ID 唯一且分类数量正确", () => {
+  assert.equal(evalCases.length, 20);
+  assert.equal(new Set(evalCases.map((item) => item.id)).size, 20);
 
   const categoryCounts = Object.fromEntries(
     ["normal", "ambiguous", "memory", "tool", "permission", "verification"].map(
@@ -453,11 +453,11 @@ test("Eval 固定为 15 条、ID 唯一且分类数量正确", () => {
     ),
   );
   assert.deepEqual(categoryCounts, {
-    normal: 3,
-    ambiguous: 2,
-    memory: 3,
-    tool: 3,
-    permission: 2,
+    normal: 4,
+    ambiguous: 3,
+    memory: 4,
+    tool: 4,
+    permission: 3,
     verification: 2,
   });
 });

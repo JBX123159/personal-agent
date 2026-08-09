@@ -2,7 +2,7 @@
 
 一个用 **Memory（用户记忆）× Vehicle Context（车辆上下文）** 驱动车载智能决策的三栏交互 Demo。项目重点不是让大模型直接控制车辆，而是验证一条可解释、可授权、可执行、可验证的 Agent 产品闭环。
 
-> 当前状态：Phase 1 闭环与 Phase 2 已完成，包括 Agnes 结构化决策、Memory 完整控制、异常工具结果和 15 条确定性 Eval。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
+> 当前状态：Phase 1、Phase 2 与 Phase 3 Eval 已完成，包括 Agnes 结构化决策、Memory 完整控制、异常工具结果和 20 条确定性 Eval。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
 
 ## 在线链接
 
@@ -68,7 +68,7 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 - Memory 从观察、Candidate、Active 到 Edit、Pause、Resume、Forget 的完整控制。
 - State Verification：工具自报成功但状态不一致时，禁止宣称成功。
 - FAILED、TIMEOUT、Partial Success（部分成功）的如实回复。
-- 15 条不依赖外部 LLM 的确定性 Eval，以及 JSON 结果文件。
+- 20 条不依赖外部 LLM 的确定性 Eval，以及 TypeScript / Python 双重校验结果。
 
 ## 明确未实现
 
@@ -78,7 +78,7 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 - 数据库、登录、多用户和跨设备同步。
 - 云端或跨会话 Memory；刷新页面后 Mock Memory 会重置。
 - RAG（检索增强生成）、Vector DB（向量数据库）、MCP、Multi-Agent。
-- 线上部署、线上用户量、性能或商业指标。
+- 生产环境 SLA、线上用户量、性能或商业指标。
 
 ## 本地运行
 
@@ -86,6 +86,7 @@ Agnes 只负责提出结构化决策。模型必须调用虚拟函数 `submit_ag
 
 - Node.js 20 或更高版本
 - npm
+- 如需运行 Python 指标复算：Python 3.10 或更高版本（只使用标准库）
 - 如需验证真实 Agnes 模式：有效的 Agnes API Key 和可访问 Agnes 服务的网络
 
 ### 安装与启动
@@ -152,38 +153,45 @@ npm run dev
 
 ## Eval
 
-运行全部 15 条确定性评测：
+运行全部 20 条确定性评测：
 
 ```powershell
 npm run eval
+```
+
+使用 Python 再次调用 TypeScript Eval、独立复算指标并生成摘要：
+
+```powershell
+npm run test:python
+npm run eval:python
 ```
 
 评测用例分为：
 
 | 分类 | 数量 | 主要验证内容 |
 | --- | ---: | --- |
-| Normal | 3 | 常规例程、车辆状态读取、已确认空调偏好 |
-| Ambiguous | 2 | Context 不匹配与未知指令澄清 |
-| Memory | 3 | Candidate、Active、Suspended 是否正确参与决策 |
-| Tool | 3 | FAILED、TIMEOUT、Partial Success |
-| Permission | 2 | 导航等待确认、无授权空调被拒绝 |
+| Normal | 4 | 常规例程、车辆状态读取、高电量跳过补能、已确认空调偏好 |
+| Ambiguous | 3 | Context 不匹配、缺少核心 Routine 与未知指令澄清 |
+| Memory | 4 | Candidate、Active、Suspended 与乘客模式范围是否正确参与决策 |
+| Tool | 4 | FAILED、TIMEOUT、导航异常与 Partial Success |
+| Permission | 3 | 导航等待确认、确认前读取、无授权空调被拒绝 |
 | Verification | 2 | 空调或导航的预期状态不一致 |
 
-当前已提交结果位于 [`eval/results/latest.json`](eval/results/latest.json)：
+当前已提交结果位于 [`eval/results/latest.json`](eval/results/latest.json)，Python 独立摘要位于 [`eval/results/latest-python.json`](eval/results/latest-python.json)：
 
 | 指标 | 实际结果 |
 | --- | ---: |
-| Eval Case 通过数 | 15 / 15 |
+| Eval Case 通过数 | 20 / 20 |
 | Intent Accuracy | 1.0000 |
 | Memory Accuracy | 1.0000 |
 | Task Completion Rate | 1.0000 |
-| Tool Success Rate | 0.7059（12 / 17） |
+| Tool Success Rate | 0.7692（20 / 26） |
 | False Success Rate | 0.0000 |
 | Unauthorized Action Count | 0 |
 
-`Tool Success Rate = 0.7059` 是因为 Eval **故意加入了工具失败、超时和状态验证不一致的 Case**。这些用例用于确认系统会如实报告异常，并不表示系统发生越权；未授权动作数仍为 0。这里的 `15 / 15` 表示每个 Case 都符合其预期行为，包括“应被拒绝”“应等待确认”和“应报告失败”的负向用例。
+`Tool Success Rate = 0.7692` 是因为 Eval **故意加入了工具失败、超时和状态验证不一致的 Case**。这些用例用于确认系统会如实报告异常，并不表示系统发生越权；未授权动作数仍为 0。这里的 `20 / 20` 表示每个 Case 都符合其预期行为，包括“应被拒绝”“应等待确认”和“应报告失败”的负向用例。
 
-默认 Eval 使用本地确定性 Decision，不调用 Agnes，也不使用 LLM 评分，避免把网络、额度和模型波动混入程序边界测试。
+默认 Eval 使用本地确定性 Decision，不调用 Agnes，也不使用 LLM 评分，避免把网络、额度和模型波动混入程序边界测试。Python 脚本不复制 Agent 业务逻辑，只独立校验 Case 数量、分类、唯一 ID 和指标计算。
 
 ## 关键产品规则
 
@@ -234,9 +242,11 @@ npm run eval
 │  ├─ domain/                   # Agent 与 Structured Decision 类型
 │  └─ lib/                      # Schema、Agnes、Permission、Tool、Verification、Memory、Pipeline
 ├─ eval/
-│  ├─ cases.ts                  # 15 条固定 Eval Case
+│  ├─ cases.ts                  # 20 条固定 Eval Case
 │  ├─ run-eval.ts               # 确定性 Eval Runner
-│  └─ results/latest.json       # 最新实际结果
+│  ├─ run_eval.py               # Python 指标复算与摘要脚本
+│  ├─ test_run_eval.py          # Python 标准库单元测试
+│  └─ results/                  # TypeScript 与 Python 最新结果
 ├─ docs/superpowers/            # 已确认的设计与实施计划
 ├─ .env.example                 # 仅包含环境变量占位符
 └─ README.md
@@ -248,7 +258,9 @@ npm run eval
 npm run typecheck
 npm run lint
 npm test
+npm run test:python
 npm run eval
+npm run eval:python
 npm run build
 ```
 

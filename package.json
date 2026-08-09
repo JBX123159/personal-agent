@@ -9,7 +9,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts",
-    "eval": "tsx eval/run-eval.ts"
+    "test:python": "python -B -m unittest eval.test_run_eval",
+    "eval": "tsx eval/run-eval.ts",
+    "eval:python": "python -B eval/run_eval.py"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

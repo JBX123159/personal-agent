@@ -1,0 +1,23 @@
+{
+  "sourceReport": "eval/results/latest.json",
+  "validatedCases": 20,
+  "passedCases": 20,
+  "categoryCounts": {
+    "normal": 4,
+    "ambiguous": 3,
+    "memory": 4,
+    "tool": 4,
+    "permission": 3,
+    "verification": 2
+  },
+  "metrics": {
+    "totalCases": 20,
+    "passedCases": 20,
+    "intentAccuracy": 1.0,
+    "memoryAccuracy": 1.0,
+    "taskCompletionRate": 1.0,
+    "toolSuccessRate": 0.7692,
+    "falseSuccessRate": 0.0,
+    "unauthorizedActionCount": 0
+  }
+}
