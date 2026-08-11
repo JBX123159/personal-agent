@@ -1,7 +1,7 @@
 # Personal Agent V1：Agnes、Eval 与 Phase 4 展示设计
 
 日期：2026-08-08
-状态：用户已确认，Phase 1～3 已完成，Phase 4 按冻结范围实施
+状态：V1 COMPLETE，Phase 1～4 已完成并于 2026-08-11 通过公开 Preview 验收
 
 ## 1. 目标
 
@@ -306,6 +306,8 @@ PRD 不写虚构用户、上线规模、性能数据或商业效果。
 - 部署链接必须无需登录即可打开 `/agent`。
 - 公开 Smoke Test 至少验证页面加载、文本输入、Voice Mode 支持或降级、Mock Scenario 01、README 链接和无密钥泄露。
 - 部署完成后记录实际 Preview URL 和验证日期；不得把 Vercel READY 状态等同于公开可用。
+- 实际公开地址：`https://personal-agent-2338176950-2036-jbx1.vercel.app/agent`。
+- 2026-08-11 验收结果：匿名访问、Voice 权限失败降级、Mock Scenario 01、真实 Agnes 手动重试、确认执行、State Verification、390px 小屏布局均通过；未部署 Production。
 
 ## 13. 安全与配置
 

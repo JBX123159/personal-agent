@@ -2,12 +2,12 @@
 
 一个用 **Memory（用户记忆）× Vehicle Context（车辆上下文）** 驱动车载智能决策的三栏交互 Demo。项目重点不是让大模型直接控制车辆，而是验证一条可解释、可授权、可执行、可验证的 Agent 产品闭环。
 
-> 当前状态：Phase 1～3 已完成，Phase 4 的 Voice Mode 与 PRD 已完成本地实现，等待公开 Preview 最终验收。所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
+> 当前状态：**V1 COMPLETE**。Phase 1～4 已完成并通过公开 Preview 验收；所有车辆、导航、补能站和餐厅能力仍为 Mock（模拟）实现。
 
 ## 在线链接
 
 - GitHub 仓库：[JBX123159/personal-agent](https://github.com/JBX123159/personal-agent)
-- 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-qf3tutxid-jbx1.vercel.app)
+- 在线演示（Vercel Preview）：[打开 Personal Agent](https://personal-agent-2338176950-2036-jbx1.vercel.app/agent)
 - 产品需求文档：[阅读 Markdown PRD](docs/Personal-Agent-PRD.md)
 - 6 页交付版：[下载 PDF PRD](output/pdf/Personal-Agent-PRD.pdf)
 
@@ -245,6 +245,7 @@ npm run eval:python
 - 真实 Agnes 请求受网络、API 额度和上游服务状态影响；请求失败或结构校验失败时不会执行 Tool，用户可手动重试。
 - Web Speech API 兼容性有限；Voice Mode 只作为可降级输入方式，识别结果不会自动提交。
 - 2026-08-09 已在公开 Preview 完成 Phase 2 smoke：页面无需登录；无温度的 Memory 编辑被拦截，有效 23℃ 编辑保存后仍为 Active；真实 Agnes Scenario 01 显示 `Decision Source：Agnes AI`，程序强制导航确认，确认后 4 个 Tool 均为 `SUCCESS`、状态验证通过且 `Case：PASS`。上游偶发失败或结构校验失败的回合均未执行 Tool。`.env.local` 与 API Key 始终保持未跟踪状态，线上 Key 仅保存为 Vercel Preview 敏感环境变量。
+- 2026-08-11 已完成 Phase 4 公开 Smoke Test：Preview 无需登录；Voice Mode 在无麦克风权限时显示中文提示并保留文本输入；Mock Scenario 01 确认后 5 个 Tool 均为 `SUCCESS` 且 `Case：PASS`；真实 Agnes 首轮超时未执行 Tool，手动重试后生成 Structured Decision，确认执行后状态验证通过且 `Case：PASS`；390px 视口无横向溢出，Inspector 标签保持 3×2 排列。线上 Key 仍仅存在于 Vercel Preview 敏感环境变量，未复制到 Production。
 
 ## 项目目录
 

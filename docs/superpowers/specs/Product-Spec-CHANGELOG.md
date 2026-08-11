@@ -1,6 +1,6 @@
 # 变更记录
 
-## [v1.3] - 2026-08-10
+## [v1.3] - 2026-08-11
 
 ### 新增
 
@@ -13,6 +13,8 @@
 - 将项目状态从 Phase 3 完成更新为 Phase 4 展示实施，并明确完成后停止 V1 开发。
 - 部署范围限定为现有 Vercel Preview，不扩大 API Key 到 Production 环境。
 - 调整 Agent Inspector 的窄屏 Tab 布局为 3×2，避免六个标签压缩后覆盖结果内容；宽屏仍保持标签区与内容区并列。
+- 将 Vercel 项目框架预设从 `Other` 修正为 `Next.js`，恢复 Preview 页面与函数产物绑定。
+- 记录公开 Preview 地址与 Smoke Test 结果，并将项目状态更新为 V1 COMPLETE。
 
 ---
 
