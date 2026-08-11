@@ -44,3 +44,7 @@ next-env.d.ts
 # python
 __pycache__/
 *.py[cod]
+
+# Tencent Cloud EdgeOne
+.edgeone/
+.tef_dist/

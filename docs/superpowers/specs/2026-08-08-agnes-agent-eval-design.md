@@ -302,12 +302,16 @@ PRD 不写虚构用户、上线规模、性能数据或商业效果。
 ## 12.2 部署与公开验收
 
 - 复用现有 Vercel `personal-agent` 项目执行 Preview 部署。
+- 仅将现有 Node.js 决策函数部署到 `sin1`（新加坡）区域，缩短中国大陆用户访问决策接口以及函数访问 Agnes 的网络路径；静态页面仍由 Vercel 全球网络分发。
 - 继续使用已授权的 Preview 敏感环境变量，不复制到 Production。
 - 部署链接必须无需登录即可打开 `/agent`。
 - 公开 Smoke Test 至少验证页面加载、文本输入、Voice Mode 支持或降级、Mock Scenario 01、README 链接和无密钥泄露。
 - 部署完成后记录实际 Preview URL 和验证日期；不得把 Vercel READY 状态等同于公开可用。
 - 实际公开地址：`https://personal-agent-2338176950-2036-jbx1.vercel.app/agent`。
 - 2026-08-11 验收结果：匿名访问、Voice 权限失败降级、Mock Scenario 01、真实 Agnes 手动重试、确认执行、State Verification、390px 小屏布局均通过；未部署 Production。
+- 中国大陆网络优化不改变 Agnes、Structured Output、Permission Engine、Mock Tool 或 Verification 规则，也不承诺 `.vercel.app` 在所有本地运营商网络下始终可用。
+- 为满足中国大陆无需 VPN 的访问目标，新增 EdgeOne Production 镜像：`https://personal-agent-cn.edgeone.cool/agent`。该镜像仅复用现有 Next.js 应用和服务端 Route Handler，不新增业务能力；`AGNES_API_KEY` 仅保存为该镜像的敏感环境变量。
+- Vercel 保持 Preview 备用地址，不部署 Vercel Production。
 
 ## 13. 安全与配置
 

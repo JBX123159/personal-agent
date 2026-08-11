@@ -1,5 +1,24 @@
 # 变更记录
 
+## [v1.5] - 2026-08-11
+
+### 修改
+
+- 新增 EdgeOne Production 镜像，供中国大陆用户在不依赖 VPN 的情况下访问既有 `/agent` Demo。
+- 仅在 EdgeOne 镜像保存 `AGNES_API_KEY` 敏感环境变量；Vercel 继续保持 Preview，不部署 Vercel Production。
+- 不新增业务能力、不修改 Agent 决策、权限、工具或状态验证规则。
+
+---
+
+## [v1.4] - 2026-08-11
+
+### 修改
+
+- 新增最小 `vercel.json`，保持 Next.js 框架不变，并把现有 Vercel Node.js 决策函数部署区域设置为新加坡 `sin1`。
+- 本次只优化中国大陆用户访问 Agnes 决策接口的网络路径，不新增业务能力、不复制密钥到 Production，也不进入 Phase 5。
+
+---
+
 ## [v1.3] - 2026-08-11
 
 ### 新增
